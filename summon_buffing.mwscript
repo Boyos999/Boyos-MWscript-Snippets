@@ -1,0 +1,28 @@
+Begin summon_buffing
+; summon_spell = Whatever spell ID is used for summoning stuff
+; buff_spell = Whatever spell ID is used for buffing summons, should be a touch spell w/AOE
+
+short control
+short controlQ
+
+if ( controlQ == 1 )
+	ExplodeSpell "buff_spell"
+	; This works because the spell will hit the caster when using ExplodeSpell
+	if ( GetSpellEffects "buff_spell" )
+		set controlQ to 2
+	endif
+endif
+
+if ( GetSpellEffects "summon_spell" == 1 )
+	if ( controlQ == 0 )
+		RemoveSpell "summon_spell"
+		set controlQ to 1
+	endif
+else
+	if ( controlQ > 0 )
+		AddSpell "summon_spell"
+		set controlQ to 0
+	endif
+endif
+
+End

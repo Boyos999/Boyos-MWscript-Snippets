@@ -1,0 +1,79 @@
+Begin disable_at_night
+; This snippet can be used to disable an actor based on the time of day
+; Includes sound and visual effect if the player is nearby 
+;
+; Condition included to remain enabled when hit by PC
+
+; visual effects
+; T_Glb_Var_SummonFX = This is a tamriel_data activator that shows a summon effect for 1700ms then disables itself
+
+; controlQ states
+; 0 = disabled during daytime
+; 1 = enabled during nighttime
+; 2 = enabled permanently for combat
+; 3 = dead
+
+short controlQ
+short OnPCHitMe
+
+if ( OnDeath )
+    set controlQ to 3
+endif
+
+if ( controlQ == 3 )
+	return
+endif
+
+if ( OnPCHitMe )
+	if ( controlQ != 2 )
+		set controlQ to 2
+	endif
+	set OnPCHitMe to 0
+endif
+
+; between 4am and 8pm
+if ( GetCurrentTime > 4 )
+	if ( GetCurrentTime < 20 )
+		if ( GetDisabled )
+			return
+		else
+			if ( controlQ != 2 )
+                ; if the player is nearby play sound and effect
+				if ( GetDistance Player <= 3000 )
+					PlaceAtMe "T_Glb_Var_SummonFX" 1 0 0
+					PlaySound3D "conjuration hit"
+				endif
+				set controlQ to 0
+				disable
+			endif
+		endif
+	endif
+endif
+
+; after 8pm
+if ( GetCurrentTime >= 20 )
+	if ( controlQ == 0 )
+		set controlQ to 1
+	endif
+endif
+
+; before 4am
+if ( GetCurrentTime <= 4 )
+	if ( controlQ == 0 )
+		set controlQ to 1
+	endif
+endif
+
+; enable if disabled
+if ( controlQ == 1 )
+	if ( GetDisabled )
+		enable
+        ; if the player is nearby play sound and effect
+		if ( GetDistance Player <= 3000 )
+			PlaceAtMe "T_Glb_Var_SummonFX" 1 0 0
+			PlaySound3D "conjuration hit"
+		endif
+	endif
+endif
+
+End

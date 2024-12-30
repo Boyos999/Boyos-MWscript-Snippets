@@ -1,0 +1,42 @@
+Begin enable_for_quest
+
+; example_quest_journal
+; 10 = first enable quest stage
+; 100 = quest completed
+
+short control
+
+; Disable if the quest is not started
+if ( GetJournalIndex "example_quest_journal" < 10 )
+	if ( GetDisabled )
+		return
+	else
+		Disable
+	endif
+; Enable now that the quest is started but not finished
+elseif ( GetJournalIndex "example_quest_journal" < 100 )
+	if ( GetDisabled )
+		Enable
+	endif
+; Disable after quest, but not if dead
+elseif ( GetJournalIndex "example_quest_journal" >= 100 )
+	if ( GetDisabled )
+		return
+	else
+		if ( control == 1 )
+			return
+		else
+			Disable
+		endif
+	endif
+endif
+
+; This sets control so that the actor is not disabled if they're dead
+if ( OnDeath == 1 )
+	if ( GetJournalIndex "example_quest_journal" >= 10 )
+		set control to 1
+	endif
+endif
+
+
+End

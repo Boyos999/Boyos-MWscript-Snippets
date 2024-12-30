@@ -1,0 +1,131 @@
+Begin sealed_letter
+
+; This is a modified copy of a vanilla script
+;
+;allows player to open and read "sealed" letter...
+;and gives the player the chance to "re-seal" them
+;
+; Requires a global "sealed_letter_state" variable to track the state of the letter
+; this lets the player open and reseal the letter to their heart's content
+;
+; sc_sealed_letter is the letter item
+;
+; quest_sealed_letter
+; 20 = journal stage for player reading letter, this isn't strictly necessary but you probably want it
+
+short sealFailed
+short PCSkipEquip
+short OnPCEquip
+short letterState
+short securityCheck
+short button
+short wasActivated
+;global sealed_letter_state
+
+;letterState...
+;0 never been loaded, sets PCSkipEquip once
+;1 scoll is sealed, ask if you want to unseal
+;2 player has been asked to unseal, wait for response
+;3 it is unsealed and can be read
+;4 it has been read once, ask if you want to re-seal
+;5 player has been asked to re-seal, wait for response
+
+if ( GetDisabled == 1 )
+	Return
+endif
+
+if ( letterState == 0 )
+	;set up PCSkipEquip for first use
+	Set PCSkipEquip to 1
+	Set letterState to 1
+endif
+
+if ( OnActivate == 1 )
+	Set wasActivated to 1
+	;handle activate method of reading books
+endif
+
+; This handles if the letter was activated in the world
+if ( wasActivated == 1 )
+	;can't get around activate... so we add on copy to the player and disable this reference
+	Player->AddItem "sc_sealed_letter" 1
+	Set letterState to 0
+	Set wasActivated to 0
+	Disable
+endif
+	
+; This handles if the player tries to read the letter from inventory
+if ( OnPCEquip == 0 )
+	Set button to -1
+	Return
+endif
+
+if ( letterState == 1 )
+	MessageBox "Do you want to break the seal and read the letter?" "Yes" "No"
+	Set letterState to 2
+endif
+
+if ( letterState == 2 )
+	set button to GetButtonPressed
+	if ( button == 0 )
+		Set letterState to 3
+		Set sealed_letter_state to 1
+		Set OnPCEquip to 0
+		Set PCSkipEquip to 0
+		MessageBox "You have broken the seal." "Okay"
+		player->equip "sc_sealed_letter"
+		Journal  quest_sealed_letter 20
+
+    ;unseal it and set global
+	elseif ( button == 1 )
+		Set letterState to 1
+		Set PCSkipEquip to 1
+		Set OnPCEquip to 0
+		;leave it sealed and reset PCSkipEquip
+	endif
+	Return
+endif
+
+if ( letterState == 3 )
+	Set letterState to 4
+	Set PCSkipEquip to 1
+	Return
+endif
+
+if ( letterState == 4 )
+	MessageBox "Do you want to read the letter again, or try to re-seal it?" "Read again" "Re-seal it"
+	Set letterState to 5
+	Return
+endif
+
+if ( letterState == 5 )
+	set button to GetButtonPressed
+	if ( button == 0 )
+		Set letterState to 3
+		Set OnPCEquip to 0
+		Set PCSkipEquip to 0
+		player->equip "sc_sealed_letter"
+	elseif ( button == 1 )
+		if ( sealFailed == 0 )
+            ; This takes a number between 0-99 and checks if the player security skill is higher
+            ; In effect the % chance of resealing the letter is the player's security skill
+			Set securityCheck to Random 100
+			if ( Player->GetSecurity > securityCheck )
+                ; reset state and conditions here because the letter was resealed
+				Set letterState to 1
+				Set PCSkipEquip to 1
+				Set sealed_letter_state to 0
+				MessageBox "You have resealed the letter." "Okay"
+			else
+                ; The letter cannot be resealed
+				set sealFailed to 1
+				MessageBox "You have damaged the seal." "Okay"
+			endif
+		else
+			MessageBox "The seal has been damaged." "Okay"
+		endif
+		Set OnPCEquip to 0
+	endif
+endif
+
+End

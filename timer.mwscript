@@ -1,0 +1,26 @@
+Begin timer
+
+; Timers use "GetSecondsPassed" which returns the number of seconds
+; since the last time the script ran (scripts run every frame)
+;
+; By incrementing a variable "timer" by this value, you can determine
+; how many seconds passed since the timer started by the value of "timer"
+;
+; This example script starts when the script loads, runs for 5 seconds, then stops
+;
+; This script uses "control" to define the timer state, but you can use other events
+
+float timer
+short control
+
+; This is the condition that determines if the timer should run
+if ( control == 0 )
+    set timer to ( timer + GetSecondsPassed )
+endif
+
+; This is the limit for when the timer should stop
+if ( timer >= 5 )
+    set control to 1
+endif
+
+End

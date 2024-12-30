@@ -1,0 +1,57 @@
+Begin spell_chain
+; This snippet will result in a actor casting a chain of spells after an initial trigger
+; All chain# spells need some "self" component that will affect the caster for this to work
+; it doesn't matter what effect
+
+; Effectively, the cast/explodespell functions get interupted by combat AI
+; so in order to use them in combat you have to tell the actor to cast until the cast is done
+
+; control states correspond to the spell in the chain
+
+; spell_ids
+; chain0 = spell that starts the chain, in this example this is a spell the combat AI will use
+; chain1 = second spell in the chain
+; chain2 = third spell in the chain
+; chain3 = fourth spell in the chain
+; chain4 = fifth spell in the chain
+; chain# = continue however long you want
+;
+; Note on spells: depending on the combat AI and what your spells are you may have to RemoveSpell/AddSpell
+; to prevent the actor from using them out of order.
+
+short control
+
+
+if ( control == 0 )
+	if ( GetSpellEffects "chain0" )
+		set control to 1
+	endif
+elseif ( control == 1 )
+	cast "chain1" Player
+	if ( GetSpellEffects "chain1" )
+		set control to 2
+	endif
+elseif ( control == 2 )
+	cast "chain2" Player
+	if ( GetSpellEffects "chain2" )
+		set control to 3
+	endif
+elseif ( control == 3 )
+	cast "chain3" Player
+	if ( GetSpellEffects "chain3" )
+		set control to 4
+	endif
+elseif ( control == 4 )
+	cast "chain4" Player
+	if ( GetSpellEffects "chain4" )
+		set control to 5
+	endif
+elseif ( control == 5 )
+    ; This if is to ensure the actor doesn't restart the chain until the original effect expires
+    ; you can set whatever trigger you want
+    if ( GetSpellEffects "chain0" == 0)
+        set control to 0
+    endif
+endif
+
+End

@@ -1,0 +1,45 @@
+Begin combat_behavior
+
+; control states
+; odd control states indicate 1 frame changes
+; even control states indicate a steady state (no changes should occur)
+; 0 = base state
+; 1 = switch to blunt weapon, remove spells
+; 2 = will use blunt weapon, not casting spells
+; 3 = switch to ranged weapon, gain spell
+; 4 = will use ranged weapon & cast spells
+
+short control
+
+; This is where conditions to set control states go
+; GetHealthGetRatio is used as an example, but this could be anything
+if ( GetHealthGetRatio >= 0.4 )
+    ; control == 2 indicates we're already in the desired state
+    ; you can include an else return if it's a long script, but it's not necessary
+	if ( control != 2 )
+		set control to 1
+	endif
+elseif ( GetHealthGetRatio < 0.4 )
+	if ( control != 4 )
+		set control to 3
+	endif
+endif
+
+if ( control == 1 )
+    ; You can define AI behavior by altering skills/spells
+    ; This state sets blunt weapon & marksman so the NPC will use melee weapons
+    ; Also removes their spell so they don't cast it
+    SetBluntWeapon 100
+	SetMarksman 0
+	RemoveSpell "example_spell"
+	set control to 2
+elseif ( control == 3 )
+    ; This state sets marksman and blunt weapon so the NPC will use ranged weapons
+    ; Also adds spell for them to use
+    SetMarksman 100
+	SetBluntWeapon 75
+	AddSpell "example_spell"
+	set control to 4
+endif
+
+End
